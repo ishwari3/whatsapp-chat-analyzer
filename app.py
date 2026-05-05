@@ -1,96 +1,50 @@
-import re
-import pandas as pd
+import streamlit as st
+import preprocessor
+import helper
 import matplotlib.pyplot as plt
-import emoji
-from collections import Counter
 
-# ------------------ READ FILE ------------------
-with open("chat.txt", encoding="utf-8") as f:
-    data = f.read()
+st.set_page_config(layout="wide")
 
-# ------------------ CLEAN DATA ------------------
-pattern = r'\d{1,2}/\d{1,2}/\d{2,4}, \d{1,2}:\d{2}.*? - '
+st.title("WhatsApp Chat Analyzer 📊")
 
-messages = re.split(pattern, data)[1:]
-dates = re.findall(pattern, data)
+st.sidebar.title("Controls")
 
-df = pd.DataFrame({'message_date': dates, 'user_message': messages})
+uploaded_file = st.sidebar.file_uploader("Upload Chat File")
 
-# ------------------ USER + MESSAGE ------------------
-users = []
-msgs = []
+if uploaded_file is not None:
 
-for message in df['user_message']:
-    entry = re.split(r'([\w\W]+?):\s', message)  # fixed warning with r''
-    if len(entry) > 1:
-        users.append(entry[1])
-        msgs.append(entry[2])
-    else:
-        users.append('group_notification')
-        msgs.append(entry[0])
+    data = uploaded_file.getvalue().decode("utf-8")
+    df = preprocessor.preprocess(data)
 
-df['user'] = users
-df['message'] = msgs
+    user_list = df['user'].unique().tolist()
+    user_list.remove("group_notification")
+    user_list.insert(0, "Overall")
 
-# ------------------ DATE FORMATTING ------------------
-df['message_date'] = pd.to_datetime(df['message_date'], format='%d/%m/%y, %I:%M %p - ')
-df['hour'] = df['message_date'].dt.hour
-df['day'] = df['message_date'].dt.day_name()
+    user = st.sidebar.selectbox("Select User", user_list)
 
-# ------------------ BASIC INFO ------------------
-print("\n📊 DATA PREVIEW:")
-print(df.head())
+    if st.sidebar.button("Show Analysis"):
 
-# ------------------ MOST ACTIVE USERS ------------------
-print("\n🔥 Most Active Users:")
-user_counts = df['user'].value_counts()
-print(user_counts)
+        # STATS
+        stats = helper.fetch_stats(user, df)
 
-# ------------------ USER BAR GRAPH ------------------
-user_counts.head().plot(kind='bar', title="Most Active Users")
-plt.xlabel("Users")
-plt.ylabel("Messages")
-plt.show()
+        col1, col2, col3, col4 = st.columns(4)
 
-# ------------------ ACTIVITY BY HOUR ------------------
-hour_counts = df['hour'].value_counts().sort_index()
+        with col1:
+            st.metric("Messages", stats[0])
+        with col2:
+            st.metric("Words", stats[1])
+        with col3:
+            st.metric("Media", stats[2])
+        with col4:
+            st.metric("Links", stats[3])
 
-plt.plot(hour_counts.index, hour_counts.values)
-plt.title("Activity by Hour")
-plt.xlabel("Hour of Day")
-plt.ylabel("Messages")
-plt.show()
+        # MONTHLY TIMELINE
+        st.subheader("Monthly Timeline")
 
-# ------------------ MOST COMMON WORDS ------------------
-words = []
-for message in df['message']:
-    for word in message.lower().split():
-        words.append(word)
+        timeline = helper.monthly_timeline(user, df)
 
-common_words = Counter(words)
-print("\n💬 Most Common Words:")
-print(common_words.most_common(10))
+        fig, ax = plt.subplots()
+        ax.plot(timeline['time'], timeline['message'], color='green')
 
-# ------------------ EMOJI ANALYSIS ------------------
-emojis = []
-for message in df['message']:
-    for char in message:
-        if char in emoji.EMOJI_DATA:
-            emojis.append(char)
-
-emoji_counts = Counter(emojis)
-
-print("\n😂 Top Emojis:")
-print(emoji_counts.most_common(10))
-
-# ------------------ EMOJI GRAPH ------------------
-top_emojis = emoji_counts.most_common(5)
-
-if top_emojis:
-    e = [i[0] for i in top_emojis]
-    c = [i[1] for i in top_emojis]
-
-    plt.bar(e, c)
-    plt.title("Top Emojis Used")
-    plt.show()
-
+        plt.xticks(rotation=90)
+        st.pyplot(fig)
