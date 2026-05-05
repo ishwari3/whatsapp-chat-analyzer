@@ -4,27 +4,27 @@ A data science web app built using **Python and Streamlit** that analyzes WhatsA
 
 ---
 
-## 🚀 Features
+## Features
 
-- 📈 Message trend analysis (daily & monthly timelines)
-- 👥 Most active users in group chats
-- 💬 Word frequency analysis
-- 😂 Emoji usage insights
-- 📊 Interactive visual dashboard using Streamlit
-
----
-
-## 🛠 Tech Stack
-
-- Python 🐍
-- Pandas 📊
-- Matplotlib 📉
-- Streamlit 🌐
-- Regex 🔍
+-Message trend analysis (daily & monthly timelines)
+-Most active users in group chats
+-Word frequency analysis
+-Emoji usage insights
+-Interactive visual dashboard using Streamlit
 
 ---
 
-## 📂 How to Use
+## Tech Stack
+
+- Python 
+- Pandas 
+- Matplotlib 
+- Streamlit 
+- Regex 
+
+---
+
+## How to Use
 
 1. Export your WhatsApp chat as a `.txt` file  
 2. Run the Streamlit app  
@@ -33,13 +33,13 @@ A data science web app built using **Python and Streamlit** that analyzes WhatsA
 
 ---
 
-## 🔒 Privacy Note
+## Privacy Note
 
 Chat data is not included in this repository to protect user privacy.
 
 ---
 
-## 💡 What I Learned
+## What I Learned
 
 - Working with unstructured text data  
 - Data cleaning & preprocessing  
